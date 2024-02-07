@@ -1,58 +1,23 @@
-from antlr4 import StdinStream, CommonTokenStream, ParseTreeWalker
+from antlr4 import (
+    StdinStream,
+    CommonTokenStream,
+    ParseTreeWalker,
+)  # FileStream
 from gramLexer import gramLexer
-from gramListener import gramListener
 from gramParser import gramParser
-
-
-class gramPrintListener(gramListener):
-
-    def __init__(self):
-        pass
-
-    def enterDefstates(self, ctx):
-        print("States: %s" % str([str(x) for x in ctx.ID()]))
-
-    def enterDefactions(self, ctx):
-        print("Actions: %s" % str([str(x) for x in ctx.ID()]))
-
-    def enterTransact(self, ctx):
-        ids = [str(x) for x in ctx.ID()]
-        dep = ids.pop(0)
-        act = ids.pop(0)
-        weights = [int(str(x)) for x in ctx.INT()]
-        print(
-            "Transition from "
-            + dep
-            + " with action "
-            + act
-            + " and targets "
-            + str(ids)
-            + " with weights "
-            + str(weights)
-        )
-
-    def enterTransnoact(self, ctx):
-        ids = [str(x) for x in ctx.ID()]
-        dep = ids.pop(0)
-        weights = [int(str(x)) for x in ctx.INT()]
-        print(
-            "Transition from "
-            + dep
-            + " with no action and targets "
-            + str(ids)
-            + " with weights "
-            + str(weights)
-        )
+from markov_listener import MarkovListener
 
 
 def main():
     lexer = gramLexer(StdinStream())
+    # lexer = gramLexer(FileStream("ex.mdp"))
     stream = CommonTokenStream(lexer)
     parser = gramParser(stream)
     tree = parser.program()
-    printer = gramPrintListener()
+    markov_listener = MarkovListener()
     walker = ParseTreeWalker()
-    walker.walk(printer, tree)
+    walker.walk(markov_listener, tree)
+    print(markov_listener.markov.actions)
 
 
 if __name__ == "__main__":
