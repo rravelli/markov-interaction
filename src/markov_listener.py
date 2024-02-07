@@ -1,5 +1,5 @@
 from gramListener import gramListener
-from markov import Markov
+from markov import Markov, Transition, Action
 
 
 class MarkovListener(gramListener):
@@ -8,13 +8,33 @@ class MarkovListener(gramListener):
         self.markov = Markov()
 
     def enterDefstates(self, ctx):
-        pass
+        states = [str(x) for x in ctx.ID()]
+        self.markov.define_state(states)
 
     def enterDefactions(self, ctx):
-        pass
+        actions = [str(x) for x in ctx.ID()]
+        self.markov.define_action(actions)
 
     def enterTransact(self, ctx):
-        pass
+        to_states = [str(x) for x in ctx.ID()]
+        from_state = to_states.pop(0)
+        action_name = to_states.pop(0)
+        weights = [int(str(x)) for x in ctx.INT()]
+        
+        transitions = []
+        for i in range(len(to_states)):
+            new_transition = Transition(weights[i], to_states[i])
+            transitions.append(new_transition)
+        
+        new_action = Action(action_name, transitions)
+        self.markov.add_action(from_state, new_action)
 
     def enterTransnoact(self, ctx):
-        pass
+        to_states = [str(x) for x in ctx.ID()]
+        from_state = to_states.pop(0)
+        weights = [int(str(x)) for x in ctx.INT()]
+
+        for i in range(len(to_states)):
+            new_transition = Transition(weights[i], to_states[i])
+            self.markov.add_transition(from_state, new_transition)
+
