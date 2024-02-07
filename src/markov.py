@@ -20,7 +20,7 @@ class Markov:
             self.graph[name] = []
 
     def define_action(self, names: list[str]):
-        self.actions = names
+        self.actions += names
 
     def add_transition(self, from_node: str, transition: Transition):
         node_transitions = self.graph.get(from_node)
@@ -36,6 +36,11 @@ class Markov:
         ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
+            )
+
+        if transition.to in [t.to for t in node_transitions]:
+            raise TypeError(
+                f"Transition from '{from_node}' to '{transition.to}' has been defined twice"
             )
 
         self.graph[from_node].append(transition)
@@ -59,4 +64,8 @@ class Markov:
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
+
+        if action.name in [t.name for t in node_transitions]:
+            raise TypeError(f"Action '{action.name}' has been defined twice")
+
         self.graph[from_node].append(action)
