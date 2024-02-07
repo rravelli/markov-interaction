@@ -1,8 +1,7 @@
-from antlr4 import *
+from antlr4 import StdinStream, CommonTokenStream, ParseTreeWalker
 from gramLexer import gramLexer
 from gramListener import gramListener
 from gramParser import gramParser
-import sys
 
 
 class gramPrintListener(gramListener):
