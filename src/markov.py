@@ -1,3 +1,6 @@
+from random import randint
+
+
 class Transition:
     def __init__(self, weight: int, to: str) -> None:
         self.weight = weight
@@ -82,8 +85,20 @@ class Markov:
             state = self.current_state
 
     @classmethod
-    def _choose_transitions(cls, transitions: list[Transition]) -> Transition:
-        pass
+    def _choose_transitions(
+        cls, transitions: list[Transition]
+    ) -> Transition | None:
+        if len(transitions) == 0:
+            return None
+
+        sum_ = sum([t.weight for t in transitions])
+        val = randint(0, sum_)
+        acc = 0
+        for t in transitions:
+            acc += t.weight
+            if val < acc:
+                return t
+        return transitions[-1]
 
     def get_available_actions(self, state=None):
         if state is None:
