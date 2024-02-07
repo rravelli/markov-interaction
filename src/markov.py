@@ -38,9 +38,7 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Action
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -65,9 +63,7 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Transition
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -77,17 +73,34 @@ class Markov:
 
         self.graph[from_node].append(action)
 
-    def go_to_next_node(self, action_choice=None) -> Transition:
-        pass
+    def go_to_next_state(self, action_choice: str = None) -> Transition:
+
+        if self.is_action_state():
+            if action_choice is None:
+                raise ValueError(
+                    f"Current state {self.current_state} is an action-state. You must choose an action"
+                )
+            actions = self.graph.get(self.current_state)
+            chosen_action = [x for x in actions if x.name == action_choice]
+            if len(chosen_action) <= 0:
+                raise ValueError(f"Action {action_choice} is not an available action")
+            return Markov._choose_transitions(chosen_action[0].transitions)
+
+        else:
+            pass
 
     def is_action_state(self, state=None) -> bool:
         if state is None:
             state = self.current_state
 
+        state_transitions = self.graph.get(state)
+
+        return state_transitions is not None and isinstance(
+            state_transitions[-1], Action
+        )
+
     @classmethod
-    def _choose_transitions(
-        cls, transitions: list[Transition]
-    ) -> Transition | None:
+    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
         if len(transitions) == 0:
             return None
 
@@ -100,6 +113,6 @@ class Markov:
                 return t
         return transitions[-1]
 
-    def get_available_actions(self, state=None):
+    def available_actions(self, state=None):
         if state is None:
             state = self.current_state
