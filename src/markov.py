@@ -87,7 +87,8 @@ class Markov:
             return Markov._choose_transitions(chosen_action[0].transitions)
 
         else:
-            pass
+            transitions = self.graph.get(self.current_state)
+            return Markov._choose_transitions(transitions)
 
     def is_action_state(self, state=None) -> bool:
         if state is None:
