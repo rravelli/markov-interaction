@@ -114,6 +114,12 @@ class Markov:
                 return t
         return transitions[-1]
 
-    def available_actions(self, state=None):
+    def available_actions(self, state: str = None):
         if state is None:
             state = self.current_state
+        if not self.is_action_state(state):
+            raise ValueError(f"State {state} is not an action-state.")
+
+        actions = self.graph.get(state)
+        action_names = [action.name for action in actions]
+        return action_names
