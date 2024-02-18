@@ -25,7 +25,7 @@ class MarkovListener(gramListener):
         for i in range(len(to_states)):
             new_transition = Transition(weights[i], to_states[i])
             transitions.append(new_transition)
-
+        print(transitions)
         new_action = Action(action_name, transitions)
         self.markov.add_action(from_state, new_action)
 

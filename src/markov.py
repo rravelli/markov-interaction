@@ -104,8 +104,10 @@ class Markov:
 
         state_transitions = self.graph.get(state)
 
-        return state_transitions is not None and isinstance(
-            state_transitions[-1], Action
+        return (
+            state_transitions is not None
+            and len(state_transitions)
+            and isinstance(state_transitions[-1], Action)
         )
 
     @classmethod

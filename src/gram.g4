@@ -1,7 +1,7 @@
 grammar gram;
 
 program
-    : defstates defactions transitions EOF
+    : defstates (defactions)? transitions EOF
     ;
 
 defstates : STATES ID (',' ID)* ';';
