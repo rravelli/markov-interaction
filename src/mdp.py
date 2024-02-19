@@ -25,12 +25,9 @@ def main():
         for name, d in g.nodes(data=True)
     }
     edge_color = {
-        (u, v): "blue" if d.get("weight") else "red"
-        for u, v, d in g.edges(data=True)
+        (u, v): "blue" if d.get("weight") else "red" for u, v, d in g.edges(data=True)
     }
-    node_size = {
-        name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)
-    }
+    node_size = {name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)}
 
     open_window(
         pos,
@@ -40,6 +37,47 @@ def main():
         node_size=node_size,
         markov=markov,
     )
+
+
+def simulate_markov(markov: MarkovListener):
+    print("\n\nSimulation starts. Enter . to end simulation\n")
+    while True:
+        choice = None
+        print(f"Current state: {markov.current_state}")
+
+        if markov.is_action_state():
+            available, available_names = markov.available_actions()
+            available = [str(action) for action in available]
+            correct = False
+            while not correct:
+                choice = input(
+                    f"Choose an action, choices are the following : \n{''.join(available)}\n"
+                )
+                if choice in available_names:
+                    correct = True
+                elif choice == ".":
+                    return
+        else:
+            available = [str(trans) for trans in markov.graph[markov.current_state]]
+            print(f"Following transitions are possible : {', '.join(available)}")
+            choice = input("Press enter to continue \n")
+            if choice == ".":
+                return
+
+        trans = markov.go_to_next_state(choice)
+        print(f"Transition {trans} chosen. \n")
+
+
+def main_console():
+    lexer = gramLexer(FileStream("examples/ex.mdp"))
+    stream = CommonTokenStream(lexer)
+    parser = gramParser(stream)
+    tree = parser.program()
+    markov_listener = MarkovListener()
+    walker = ParseTreeWalker()
+    walker.walk(markov_listener, tree)
+    markov = markov_listener.markov
+    simulate_markov(markov)
 
 
 if __name__ == "__main__":

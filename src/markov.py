@@ -6,11 +6,25 @@ class Transition:
         self.weight = weight
         self.to = to
 
+    def __str__(self) -> str:
+        return f"To {self.to} with weight {self.weight}"
+
+    def __repr__(self) -> str:
+        return f"To {self.to} with weight {self.weight}"
+
 
 class Action:
     def __init__(self, name: str, transitions: list[Transition]) -> None:
         self.name = name
         self.transitions = transitions
+
+    def __str__(self) -> str:
+        transitions_str = [f" - {trans}\n" for trans in self.transitions]
+        return f"{self.name} with transitions:\n{''.join(transitions_str)}"
+
+    def __repr__(self) -> str:
+        transitions_str = [f" - {trans}\n" for trans in self.transitions]
+        return f"{self.name} with transitions:\n{''.join(transitions_str)}"
 
 
 class Markov:
@@ -38,9 +52,7 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Action
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -65,9 +77,7 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Transition
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -87,9 +97,7 @@ class Markov:
             actions = self.graph.get(self.current_state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(
-                    f"Action {action_choice} is not an available action"
-                )
+                raise ValueError(f"Action {action_choice} is not an available action")
             trans = Markov._choose_transitions(chosen_action[0].transitions)
 
         else:
@@ -111,9 +119,7 @@ class Markov:
         )
 
     @classmethod
-    def _choose_transitions(
-        cls, transitions: list[Transition]
-    ) -> Transition | None:
+    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
         if len(transitions) == 0:
             return None
 
@@ -134,4 +140,4 @@ class Markov:
 
         actions = self.graph.get(state)
         action_names = [action.name for action in actions]
-        return action_names
+        return actions, action_names
