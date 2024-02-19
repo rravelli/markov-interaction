@@ -59,10 +59,9 @@ def open_window(
                 mouse = pygame.mouse.get_pos()
                 node = window.on_click(mouse)
                 if node:
-                    if (
-                        markov.is_action_state()
-                        and node.label in markov.available_actions()
-                    ):
+                    if markov.is_action_state() and node.label in [
+                        a.name for a in markov.available_actions()
+                    ]:
                         window.selected_node = node.label
                         selected_action = node.label
 

@@ -46,8 +46,10 @@ def simulate_markov(markov: MarkovListener):
         print(f"Current state: {markov.current_state}")
 
         if markov.is_action_state():
-            available, available_names = markov.available_actions()
+            available = markov.available_actions()
+            available_names = [action.name for action in available]
             available = [str(action) for action in available]
+
             correct = False
             while not correct:
                 choice = input(

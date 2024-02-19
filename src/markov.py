@@ -139,5 +139,4 @@ class Markov:
             raise ValueError(f"State {state} is not an action-state.")
 
         actions = self.graph.get(state)
-        action_names = [action.name for action in actions]
-        return actions, action_names
+        return actions
