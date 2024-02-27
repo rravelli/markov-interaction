@@ -20,6 +20,8 @@ def main():
 
     g = markov_to_graph(markov)
     pos = nx.planar_layout(g)
+    print(pos)
+    pos = {key: pos[key] * 1000 for key in pos}
     node_color = {
         name: Color(255, 0, 0) if d["action"] else Color(0, 0, 255)
         for name, d in g.nodes(data=True)

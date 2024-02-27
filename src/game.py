@@ -7,8 +7,8 @@ from graphics.node import Node
 from graphics.window import Window
 
 FRICTION = 0.90
-MAX_VEL = 0.07
-DELTA_VEL = 0.001
+MAX_VEL = 70
+DELTA_VEL = 1
 
 
 def open_window(
@@ -104,7 +104,7 @@ def open_window(
         # translate screen
         window.translate(dx, dy)
         # blanken screen
-        window.screen.fill("black")
+        window.screen.fill("white")
         # draw everything to the screen
         window.draw()
         # update the screen

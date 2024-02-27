@@ -17,6 +17,7 @@ class Window:
         self.screen = pygame.display.set_mode((800, 700), pygame.RESIZABLE)
         # set the pygame window name
         pygame.display.set_caption("Markov")
+        # pygame.display.set_icon()
         self._rescale(list(node_pos.values()))
         self.nodes = nodes
         self.edges = edges
@@ -37,7 +38,7 @@ class Window:
                 self.min_y = y
             if y > self.max_y:
                 self.max_y = y
-        margin = 0.1
+        margin = 100
         self.min_x -= margin
         self.max_x += margin
         self.min_y -= margin
@@ -54,6 +55,15 @@ class Window:
             ]
         )
 
+    def to_draw_scale(self, val: float):
+        height = self.screen.get_height()
+        width = self.screen.get_width()
+        ratio = max(
+            width / (self.max_x - self.min_x),
+            height / (self.max_y - self.min_y),
+        )
+        return val * ratio
+
     def to_real_pos(self, pos: tuple[float, float]):
         x, y = pos
         height = self.screen.get_height()
@@ -66,12 +76,9 @@ class Window:
         )
 
     def to_real_scale(self, val: float):
-        height = self.screen.get_height()
+        # height = self.screen.get_height()
         width = self.screen.get_width()
-        ratio = max(
-            (self.max_x - self.min_x) / width,
-            (self.max_y - self.min_y) / height,
-        )
+        ratio = (self.max_x - self.min_x) / width
         return val * ratio
 
     def draw(self):

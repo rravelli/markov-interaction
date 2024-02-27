@@ -9,6 +9,7 @@ import numpy as np
 
 ARROW_WIDTH = 10
 ARROW_LENGTH = 20
+LOOP_RADIUS = 25
 
 
 class Edge:
@@ -32,60 +33,93 @@ class Edge:
         self.draw_label(window=window)
 
     def draw_line(self, window: window.Window, selected: bool):
+        color = "green" if selected else self.color
+
         if self.from_node == self.to_node:
+            center = self.from_node.pos - (
+                LOOP_RADIUS + self.from_node._r / 2
+            ) * np.array([1, 0])
+            delta = LOOP_RADIUS * np.array([1, 1])
+            pos = window.to_draw_pos(center - delta)
+            size = window.to_draw_scale(2 * LOOP_RADIUS)
+            rect = (pos[0], pos[1], size, size)
+            pygame.draw.arc(
+                window.screen,
+                color,
+                rect,
+                (-20 + 90) / 57,
+                (270 + 90) / 57,
+                1,
+            )
             return
 
         start_pos = self.from_node.pos
         end_pos = self.to_node.pos
-        color = "green" if selected else self.color
 
         vec: np.ndarray = end_pos - start_pos
         vec /= np.linalg.norm(vec)
 
-        margin = window.to_real_scale(
-            self.to_node.radius + ARROW_LENGTH - self.width
-        )
-        pygame.draw.line(
+        margin = self.to_node._r + ARROW_LENGTH - self.width
+        pygame.draw.aaline(
             window.screen,
             color,
             window.to_draw_pos(start_pos),
             window.to_draw_pos(end_pos - margin * vec),
-            self.width,
+            # self.width,
         )
 
     def draw_label(self, window: window.Window):
-        if self.label:
-            x1, y1 = self.from_node.pos
-            x2, y2 = self.to_node.pos
-            pos = window.to_draw_pos(((x1 + x2) / 2, (y1 + y2) / 2))
-            TextElement(window.screen, size=22).write(self.label, pos)
+        if self.label is None:
+            return
+
+        if self.from_node == self.to_node:
+            pos = self.from_node.pos - (
+                2 * LOOP_RADIUS + self.from_node._r / 2
+            ) * np.array([1, 0])
+        else:
+            pos = (self.from_node.pos + self.to_node.pos) / 2
+
+        pos = window.to_draw_pos(pos)
+        TextElement(
+            window.screen, size=22, color="black", background="white"
+        ).write(self.label, pos)
 
     def draw_arrow(self, window: window.Window, selected: bool):
         color = "green" if selected else self.color
-        start_pos = self.from_node.pos
-        end_pos = self.to_node.pos
+
+        if self.from_node == self.to_node:
+            start_pos = self.to_node.pos - np.array([2, 1.5])
+            end_pos = self.to_node.pos - np.array([0, 0])
+        else:
+            start_pos = self.from_node.pos
+            end_pos = self.to_node.pos
+
         vec: np.ndarray = end_pos - start_pos
         vec /= np.linalg.norm(vec)
 
-        arrow_point = end_pos - window.to_real_scale(self.to_node.radius) * vec
-        arrow_center = arrow_point - window.to_real_scale(ARROW_LENGTH) * vec
+        arrow_point = end_pos - self.to_node._r * vec
+        arrow_center = arrow_point - ARROW_LENGTH * vec
 
-        vert_vec_x = 1 / sqrt(1 + (vec[0] / vec[1]) ** 2)
-        vert_vec_y = 1 / sqrt(1 + (vec[1] / vec[0]) ** 2)
+        if vec[1] == 0:
+            vert_vec_x = 0
+            vert_vec_y = 1
+        else:
+            vert_vec_x = 1 / sqrt(1 + (vec[0] / vec[1]) ** 2)
+            vert_vec_y = -vec[0] * vert_vec_x / vec[1]
+
         vert_vec = np.array([vert_vec_x, vert_vec_y])
 
-        arrow_width = window.to_real_scale(self.width + ARROW_WIDTH)
-        arrow_up = arrow_center + arrow_width / 2 * vert_vec
-        arrow_down = arrow_center - arrow_width / 2 * vert_vec
+        arrow_up = arrow_center + ARROW_WIDTH / 2 * vert_vec
+        arrow_down = arrow_center - ARROW_WIDTH / 2 * vert_vec
+
+        points = [
+            window.to_draw_pos(arrow_point),
+            window.to_draw_pos(arrow_up),
+            window.to_draw_pos(arrow_center + 4 * vec),
+            window.to_draw_pos(arrow_down),
+        ]
+
+        pygame.draw.polygon(window.screen, color, points)
         pygame.draw.polygon(
-            window.screen,
-            color,
-            [
-                window.to_draw_pos(arrow_point),
-                window.to_draw_pos(arrow_up),
-                window.to_draw_pos(
-                    arrow_center + window.to_real_scale(4) * vec
-                ),
-                window.to_draw_pos(arrow_down),
-            ],
+            window.screen, pygame.Color(0, 0, 0), points, width=1
         )

@@ -30,19 +30,22 @@ class Node:
     def draw(self, window: window.Window, selected: bool = False):
         ratio = 1.3 if selected else 1
 
-        self._r += (self.radius * ratio - self._r) / 20
+        self._r += (self.radius * ratio - self._r) / 10
 
         draw_pos = window.to_draw_pos(self.pos)
+        radius = window.to_draw_scale(self._r)
 
         draw_circle(
             window.screen,
             int(draw_pos[0]),
             int(draw_pos[1]),
-            int(self._r),
+            int(radius),
             pygame.Color(0, 255, 0) if selected else self.color,
         )
         if self.label:
-            TextElement(window.screen, size=22).write(self.label, draw_pos)
+            TextElement(window.screen, size=22, color="black").write(
+                self.label, draw_pos
+            )
 
     def inside(self, pos: tuple[float, float], window: window.Window):
         x, y = window.to_draw_pos(self.pos)

@@ -2,6 +2,7 @@ import os
 from typing import Tuple, Union
 from pygame.font import Font
 from pygame import Surface
+from pygame import draw
 
 
 class TextElement:
@@ -13,11 +14,13 @@ class TextElement:
         size=TEXT_SIZE,
         color="white",
         font_name="Roboto-Regular",
+        background=None,
     ) -> None:
         self.surface = surface
         self._font_name = font_name
         self._size = size
         self.color = color
+        self.background = background
         self.font = self.__initialize_font()
 
     @property
@@ -56,6 +59,17 @@ class TextElement:
             )
         width = rendered_text.get_width()
         height = rendered_text.get_height()
+        if self.background:
+            draw.rect(
+                self.surface,
+                self.background,
+                (
+                    coordinates[0] - width / 2,
+                    coordinates[1] - height / 2,
+                    width,
+                    height,
+                ),
+            )
         self.surface.blit(
             rendered_text,
             (coordinates[0] - width / 2, coordinates[1] - height / 2),
