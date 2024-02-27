@@ -6,6 +6,7 @@ from graphics.text import TextElement
 import pygame
 from math import sqrt
 import numpy as np
+from graphics.colors import *
 
 ARROW_WIDTH = 10
 ARROW_LENGTH = 20
@@ -33,7 +34,15 @@ class Edge:
         self.draw_label(window=window)
 
     def draw_line(self, window: window.Window, selected: bool):
-        color = "green" if selected else self.color
+        color = (
+            (
+                ACTION_SELECTED_NODE_EDGE
+                if self.label is None
+                else DEFAULT_SELECTED_NODE_EDGE
+            )
+            if selected
+            else self.color
+        )
 
         if self.from_node == self.to_node:
             center = self.from_node.pos - (
@@ -80,19 +89,27 @@ class Edge:
             pos = (self.from_node.pos + self.to_node.pos) / 2
 
         pos = window.to_draw_pos(pos)
-        TextElement(
-            window.screen, size=22, color="black", background="white"
-        ).write(self.label, pos)
+        TextElement(window.screen, size=22, color="black", background="white").write(
+            self.label, pos
+        )
 
     def draw_arrow(self, window: window.Window, selected: bool):
-        color = "green" if selected else self.color
-
         if self.from_node == self.to_node:
             start_pos = self.to_node.pos - np.array([2, 1.5])
             end_pos = self.to_node.pos - np.array([0, 0])
         else:
             start_pos = self.from_node.pos
             end_pos = self.to_node.pos
+
+        color = (
+            (
+                ACTION_SELECTED_NODE_EDGE
+                if self.label is None
+                else DEFAULT_SELECTED_NODE_EDGE
+            )
+            if selected
+            else self.color
+        )
 
         vec: np.ndarray = end_pos - start_pos
         vec /= np.linalg.norm(vec)
@@ -120,6 +137,4 @@ class Edge:
         ]
 
         pygame.draw.polygon(window.screen, color, points)
-        pygame.draw.polygon(
-            window.screen, pygame.Color(0, 0, 0), points, width=1
-        )
+        pygame.draw.polygon(window.screen, pygame.Color(0, 0, 0), points, width=1)

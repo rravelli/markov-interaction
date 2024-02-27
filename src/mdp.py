@@ -6,6 +6,7 @@ from plotting import markov_to_graph
 import networkx as nx
 from game import open_window
 from pygame import Color
+from graphics.colors import *
 
 
 def main():
@@ -23,11 +24,12 @@ def main():
     print(pos)
     pos = {key: pos[key] * 1000 for key in pos}
     node_color = {
-        name: Color(255, 0, 0) if d["action"] else Color(0, 0, 255)
+        name: ACTION_NODE_EDGE if d["action"] else DEFAULT_NODE_EDGE
         for name, d in g.nodes(data=True)
     }
     edge_color = {
-        (u, v): "blue" if d.get("weight") else "red" for u, v, d in g.edges(data=True)
+        (u, v): DEFAULT_NODE_EDGE if d.get("weight") else ACTION_NODE_EDGE
+        for u, v, d in g.edges(data=True)
     }
     node_size = {name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)}
 

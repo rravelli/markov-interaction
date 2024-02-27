@@ -3,6 +3,7 @@ import pygame
 import graphics.node as _node
 import graphics.edge as _edge
 import numpy as np
+from graphics.colors import *
 
 
 class Window:
@@ -83,11 +84,29 @@ class Window:
 
     def draw(self):
         for edge in self.edges:
-            edge.draw(
-                self, selected=edge.from_node.label == self.selected_node
-            )
+            edge.draw(self, selected=edge.from_node.label == self.selected_node)
         for node in self.nodes:
             node.draw(self, selected=node.label == self.selected_node)
+        self.draw_legend()
+
+    def draw_legend(self):
+        for edge in self.edges:
+            if edge.from_node.label == self.selected_node and edge.label is None:
+                edge.to_node.draw(
+                    self,
+                    selected=edge.to_node.label == self.selected_node,
+                    to_choose=True,
+                )
+                my_font = pygame.font.SysFont("arial", 30)
+                text = my_font.render(
+                    "Choose between yellow actions.",
+                    True,
+                    "black",
+                )
+                text_rect = text.get_rect()
+                text_rect.centerx = self.screen.get_width() / 2
+                text_rect.centery = self.screen.get_height() - 40
+                self.screen.blit(text, text_rect)
 
     def on_click(self, pos: tuple[float, float]) -> _node.Node:
         for node in self.nodes:

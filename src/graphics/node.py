@@ -5,6 +5,7 @@ from graphics.text import TextElement
 import pygame
 from pygame import gfxdraw, Color
 import numpy as np
+from graphics.colors import *
 
 
 def draw_circle(surface, x, y, radius, color):
@@ -27,8 +28,16 @@ class Node:
         self.radius = radius
         self._r = radius
 
-    def draw(self, window: window.Window, selected: bool = False):
-        ratio = 1.3 if selected else 1
+    def draw(
+        self, window: window.Window, selected: bool = False, to_choose: bool = False
+    ):
+        color = (
+            ACTION_SELECTED_NODE_EDGE
+            if to_choose
+            else (DEFAULT_SELECTED_NODE_EDGE if selected else self.color)
+        )
+
+        ratio = 1.5 if selected else 1
 
         self._r += (self.radius * ratio - self._r) / 10
 
@@ -36,13 +45,12 @@ class Node:
         radius = window.to_draw_scale(self._r)
 
         draw_circle(
-            window.screen,
-            int(draw_pos[0]),
-            int(draw_pos[1]),
-            int(radius),
-            pygame.Color(0, 255, 0) if selected else self.color,
+            window.screen, int(draw_pos[0]), int(draw_pos[1]), int(radius), color
         )
         if self.label:
+            TextElement(window.screen, size=22, color="black").write(
+                self.label, draw_pos
+            )
             TextElement(window.screen, size=22, color="black").write(
                 self.label, draw_pos
             )
