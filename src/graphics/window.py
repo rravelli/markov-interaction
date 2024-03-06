@@ -90,6 +90,7 @@ class Window:
         self.draw_legend()
 
     def draw_legend(self):
+        yellow = False
         for edge in self.edges:
             if edge.from_node.label == self.selected_node and edge.label is None:
                 edge.to_node.draw(
@@ -97,16 +98,30 @@ class Window:
                     selected=edge.to_node.label == self.selected_node,
                     to_choose=True,
                 )
-                my_font = pygame.font.SysFont("arial", 30)
-                text = my_font.render(
-                    "Choose between yellow actions.",
-                    True,
-                    "black",
-                )
-                text_rect = text.get_rect()
-                text_rect.centerx = self.screen.get_width() / 2
-                text_rect.centery = self.screen.get_height() - 40
-                self.screen.blit(text, text_rect)
+                yellow = True
+
+        if yellow:
+            my_font = pygame.font.SysFont("arial", 30)
+            text = my_font.render(
+                "Choose between yellow actions.",
+                True,
+                "black",
+            )
+            text_rect = text.get_rect()
+            text_rect.centerx = self.screen.get_width() / 2
+            text_rect.centery = self.screen.get_height() - 40
+            self.screen.blit(text, text_rect)
+        else:
+            my_font = pygame.font.SysFont("arial", 30)
+            text = my_font.render(
+                "Press space bar to go to next state",
+                True,
+                "black",
+            )
+            text_rect = text.get_rect()
+            text_rect.centerx = self.screen.get_width() / 2
+            text_rect.centery = self.screen.get_height() - 40
+            self.screen.blit(text, text_rect)
 
     def on_click(self, pos: tuple[float, float]) -> _node.Node:
         for node in self.nodes:
