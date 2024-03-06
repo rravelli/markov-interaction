@@ -1,4 +1,5 @@
 from random import randint
+from math import log
 
 
 class Transition:
@@ -60,7 +61,9 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
+        if len(state_transitions) > 0 and isinstance(
+            state_transitions[-1], Action
+        ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -85,7 +88,9 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
+        if len(state_transitions) > 0 and isinstance(
+            state_transitions[-1], Transition
+        ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -110,7 +115,9 @@ class Markov:
             actions = self.graph.get(self.current_state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(f"Action {action_choice} is not an available action")
+                raise ValueError(
+                    f"Action {action_choice} is not an available action"
+                )
             self.action_history.append(chosen_action[0].name)
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
@@ -134,7 +141,9 @@ class Markov:
         )
 
     @classmethod
-    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
+    def _choose_transitions(
+        cls, transitions: list[Transition]
+    ) -> Transition | None:
         if len(transitions) == 0:
             return None
 
@@ -155,3 +164,24 @@ class Markov:
 
         actions = self.graph.get(state)
         return actions
+
+    def monte_carlo(
+        self,
+        states: list[str],
+        epsilon: float = None,
+        delta: float = None,
+        n: int = None,
+    ):
+        if n is None:
+            n = int((log(2) - log(delta)) / (2 * epsilon) ** 2) + 1
+        _sum = 0
+        for _ in range(n):
+            action = None
+            if self.is_action_state():
+                actions = [x.name for x in self.available_actions()]
+                r = randint(0, len(actions) - 1)
+                action = actions[r]
+            self.go_to_next_state(action_choice=action)
+            _sum += self.current_state in states
+
+        return _sum / n
