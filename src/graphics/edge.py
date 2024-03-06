@@ -30,11 +30,12 @@ class Edge:
         self.to_node = to_node
         self.label = str(label) if label else None
         self.width = width if label else 10
+        self.offset = 10 * np.random.random(2)
 
     def draw(self, window: window.Window, selected: bool = False):
         self.draw_line(window=window, selected=selected)
         self.draw_arrow(window=window, selected=selected)
-        self.draw_label(window=window)
+        self.draw_label(window=window, selected=selected)
 
     def draw_line(self, window: window.Window, selected: bool):
         color = (
@@ -80,7 +81,7 @@ class Edge:
             # self.width,
         )
 
-    def draw_label(self, window: window.Window):
+    def draw_label(self, window: window.Window, selected: bool):
         if self.label is None:
             return
 
@@ -89,12 +90,35 @@ class Edge:
                 2 * LOOP_RADIUS + self.from_node._r / 2
             ) * np.array([1, 0])
         else:
-            pos = (self.from_node.pos + self.to_node.pos) / 2
+            pos = (
+                self.from_node.pos + self.to_node.pos
+            ) / 2 + self.parallel_vec() * 15
 
         pos = window.to_draw_pos(pos)
         TextElement(
-            window.screen, size=22, color="black", background="white"
+            window.screen,
+            size=int(window.to_draw_scale(20)),
+            color=DEFAULT_SELECTED_NODE_EDGE if selected else "black",
+            background="white" if self.from_node == self.to_node else None,
         ).write(self.label, pos)
+
+    def parallel_vec(self):
+        start_pos = self.from_node.pos
+        end_pos = self.to_node.pos
+        vec: np.ndarray = end_pos - start_pos
+        vec /= np.linalg.norm(vec)
+        if vec[1] == 0:
+            vert_vec_x = 0
+            vert_vec_y = 1
+        else:
+            if start_pos[0] > end_pos[0]:
+                factor = 1
+            else:
+                factor = -1
+            vert_vec_x = factor / sqrt(1 + (vec[0] / vec[1]) ** 2)
+            vert_vec_y = -vec[0] * vert_vec_x / vec[1]
+
+        return np.array([vert_vec_x, vert_vec_y])
 
     def draw_arrow(self, window: window.Window, selected: bool):
         if self.from_node == self.to_node:

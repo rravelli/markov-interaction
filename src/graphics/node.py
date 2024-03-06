@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import graphics.window as window
 from graphics.text import TextElement
-import pygame
 from pygame import gfxdraw, Color
 import numpy as np
-from graphics.colors import *
+from graphics.colors import (
+    ACTION_SELECTED_NODE_EDGE,
+    DEFAULT_SELECTED_NODE_EDGE,
+)
 
 
 def draw_circle(surface, x, y, radius, color):
@@ -29,7 +31,10 @@ class Node:
         self._r = radius
 
     def draw(
-        self, window: window.Window, selected: bool = False, to_choose: bool = False
+        self,
+        window: window.Window,
+        selected: bool = False,
+        to_choose: bool = False,
     ):
         color = (
             ACTION_SELECTED_NODE_EDGE
@@ -45,15 +50,18 @@ class Node:
         radius = window.to_draw_scale(self._r)
 
         draw_circle(
-            window.screen, int(draw_pos[0]), int(draw_pos[1]), int(radius), color
+            window.screen,
+            int(draw_pos[0]),
+            int(draw_pos[1]),
+            int(radius),
+            color,
         )
         if self.label:
-            TextElement(window.screen, size=22, color="black").write(
-                self.label, draw_pos
-            )
-            TextElement(window.screen, size=22, color="black").write(
-                self.label, draw_pos
-            )
+            TextElement(
+                window.screen,
+                size=int(window.to_draw_scale(22)),
+                color="black",
+            ).write(self.label, draw_pos)
 
     def inside(self, pos: tuple[float, float], window: window.Window):
         x, y = window.to_draw_pos(self.pos)
