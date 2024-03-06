@@ -34,13 +34,19 @@ class Markov:
         self.current_state = None
         self.action_history: list[str] = []
         self.node_history: list[str] = []
+        self.reward: dict[str, list[int]] = {}
 
-    def define_states(self, names: list[str]):
+    def define_states(self, names: list[str], reward: list[int]):
         if self.current_state is None:
             self.current_state = names[0]
 
-        for name in names:
-            self.graph[name] = []
+        if len(names) > len(reward) > 0:
+            raise KeyError("You must either define rewards for all states or none.")
+
+        for i in range(len(names)):
+            self.graph[names[i]] = []
+            if len(reward) > 0:
+                self.reward[names[i]] = reward[i]
 
     def define_actions(self, names: list[str]):
         self.actions += names

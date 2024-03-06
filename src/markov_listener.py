@@ -9,7 +9,8 @@ class MarkovListener(gramListener):
 
     def enterDefstates(self, ctx):
         states = [str(x) for x in ctx.ID()]
-        self.markov.define_states(states)
+        rewards = [int(str(x)) for x in ctx.INT()]
+        self.markov.define_states(states, rewards)
 
     def enterDefactions(self, ctx):
         actions = [str(x) for x in ctx.ID()]
