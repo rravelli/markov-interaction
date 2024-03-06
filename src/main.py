@@ -7,10 +7,11 @@ import networkx as nx
 from game import open_window
 from graphics.colors import ACTION_NODE_EDGE, DEFAULT_NODE_EDGE
 from sys import argv
+from markov import Markov
 
 
 def main():
-    lexer = gramLexer(FileStream(argv[1]))
+    lexer = gramLexer(FileStream(argv[-1]))
     stream = CommonTokenStream(lexer)
     parser = gramParser(stream)
     tree = parser.program()
@@ -19,6 +20,13 @@ def main():
     walker.walk(markov_listener, tree)
     markov = markov_listener.markov
 
+    if "-t" in argv or "--terminal" in argv:
+        main_console(markov)
+    else:
+        main_gi(markov)
+
+
+def main_gi(markov: Markov):
     g = markov_to_graph(markov)
     pos = nx.planar_layout(g)
     pos = {key: pos[key] * 1000 for key in pos}
@@ -33,7 +41,6 @@ def main():
     node_size = {
         name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)
     }
-
     open_window(
         pos,
         edges=g.edges(data=True),
@@ -44,7 +51,7 @@ def main():
     )
 
 
-def simulate_markov(markov: MarkovListener):
+def main_console(markov: Markov):
     print("\n\nSimulation starts. Enter . to end simulation\n")
     while True:
         choice = None
@@ -77,18 +84,6 @@ def simulate_markov(markov: MarkovListener):
 
         trans = markov.go_to_next_state(choice)
         print(f"Transition {trans} chosen. \n")
-
-
-def main_console():
-    lexer = gramLexer(FileStream("examples/ex.mdp"))
-    stream = CommonTokenStream(lexer)
-    parser = gramParser(stream)
-    tree = parser.program()
-    markov_listener = MarkovListener()
-    walker = ParseTreeWalker()
-    walker.walk(markov_listener, tree)
-    markov = markov_listener.markov
-    simulate_markov(markov)
 
 
 if __name__ == "__main__":
