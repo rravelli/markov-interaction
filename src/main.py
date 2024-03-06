@@ -21,7 +21,6 @@ def main():
 
     g = markov_to_graph(markov)
     pos = nx.planar_layout(g)
-    print(pos)
     pos = {key: pos[key] * 1000 for key in pos}
     node_color = {
         name: ACTION_NODE_EDGE if d["action"] else DEFAULT_NODE_EDGE
