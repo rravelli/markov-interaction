@@ -9,6 +9,7 @@ import numpy as np
 from graphics.colors import (
     ACTION_SELECTED_NODE_EDGE,
     DEFAULT_SELECTED_NODE_EDGE,
+    DEFAULT_NODE_EDGE,
 )
 
 ARROW_WIDTH = 10
@@ -23,13 +24,13 @@ class Edge:
         to_node: Node,
         color: str = "white",
         label: str | float = None,
-        width: int = 4,
+        width: int = 1,
     ) -> None:
         self.color = color
         self.from_node = from_node
         self.to_node = to_node
         self.label = str(label) if label else None
-        self.width = width if label else 10
+        self.width = width
         self.offset = 10 * np.random.random(2)
 
     def draw(self, window: window.Window, selected: bool = False):
@@ -73,12 +74,12 @@ class Edge:
         vec /= np.linalg.norm(vec)
 
         margin = self.to_node._r + ARROW_LENGTH - self.width
-        pygame.draw.aaline(
+        pygame.draw.line(
             window.screen,
             color,
             window.to_draw_pos(start_pos),
             window.to_draw_pos(end_pos - margin * vec),
-            # self.width,
+            3 if selected else self.width,
         )
 
     def draw_label(self, window: window.Window, selected: bool):
@@ -90,15 +91,13 @@ class Edge:
                 2 * LOOP_RADIUS + self.from_node._r / 2
             ) * np.array([1, 0])
         else:
-            pos = (
-                self.from_node.pos + self.to_node.pos
-            ) / 2 + self.parallel_vec() * 15
+            pos = (self.from_node.pos + self.to_node.pos) / 2 + self.parallel_vec() * 15
 
         pos = window.to_draw_pos(pos)
         TextElement(
             window.screen,
             size=int(window.to_draw_scale(20)),
-            color=DEFAULT_SELECTED_NODE_EDGE if selected else "black",
+            color=DEFAULT_SELECTED_NODE_EDGE if selected else DEFAULT_NODE_EDGE,
             background="white" if self.from_node == self.to_node else None,
         ).write(self.label, pos)
 
@@ -164,6 +163,4 @@ class Edge:
         ]
 
         pygame.draw.polygon(window.screen, color, points)
-        pygame.draw.polygon(
-            window.screen, pygame.Color(0, 0, 0), points, width=1
-        )
+        pygame.draw.polygon(window.screen, pygame.Color(0, 0, 0), points, width=1)
