@@ -80,7 +80,8 @@ def open_window(
                     if not markov.is_action_state() or selected_action:
                         trans = markov.go_to_next_state(selected_action)
                         selected_action = None
-                        window.selected_node = trans.to
+                        if trans is not None:
+                            window.selected_node = trans.to
 
             elif event.type == pygame.KEYUP:
                 # update key map

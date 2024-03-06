@@ -111,7 +111,8 @@ class Markov:
             transitions = self.graph.get(self.current_state)
             trans = Markov._choose_transitions(transitions)
         self.node_history.append(self.current_state)
-        self.current_state = trans.to
+        if trans is not None:
+            self.current_state = trans.to
         return trans
 
     def is_action_state(self, state=None) -> bool:
