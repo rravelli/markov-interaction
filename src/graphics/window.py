@@ -3,7 +3,6 @@ import pygame
 import graphics.node as _node
 import graphics.edge as _edge
 import numpy as np
-from graphics.colors import *
 
 
 class Window:
@@ -23,6 +22,8 @@ class Window:
         self.nodes = nodes
         self.edges = edges
         self.selected_node = selected_node_label
+        self.node_history = []
+        self.action_history = []
 
     def _rescale(self, coordinates: list[tuple[float, float]]):
         self.min_x = float("inf")
@@ -84,7 +85,9 @@ class Window:
 
     def draw(self):
         for edge in self.edges:
-            edge.draw(self, selected=edge.from_node.label == self.selected_node)
+            edge.draw(
+                self, selected=edge.from_node.label == self.selected_node
+            )
         for node in self.nodes:
             node.draw(self, selected=node.label == self.selected_node)
         self.draw_legend()
@@ -92,14 +95,36 @@ class Window:
     def draw_legend(self):
         yellow = False
         for edge in self.edges:
-            if edge.from_node.label == self.selected_node and edge.label is None:
+            if (
+                edge.from_node.label == self.selected_node
+                and edge.label is None
+            ):
                 edge.to_node.draw(
                     self,
                     selected=edge.to_node.label == self.selected_node,
                     to_choose=True,
                 )
                 yellow = True
-
+        # print history
+        my_font = pygame.font.SysFont("arial", 15)
+        text = my_font.render(
+            "Node history: " + ",".join(self.node_history[-20:]),
+            True,
+            "black",
+        )
+        text_rect = text.get_rect()
+        text_rect.centerx = self.screen.get_width() / 2
+        text_rect.centery = 50
+        self.screen.blit(text, text_rect)
+        text = my_font.render(
+            "Action history: " + ",".join(self.action_history[-20:]),
+            True,
+            "black",
+        )
+        text_rect = text.get_rect()
+        text_rect.centerx = self.screen.get_width() / 2
+        text_rect.centery = 30
+        self.screen.blit(text, text_rect)
         if yellow:
             my_font = pygame.font.SysFont("arial", 30)
             text = my_font.render(

@@ -6,7 +6,10 @@ from graphics.text import TextElement
 import pygame
 from math import sqrt
 import numpy as np
-from graphics.colors import *
+from graphics.colors import (
+    ACTION_SELECTED_NODE_EDGE,
+    DEFAULT_SELECTED_NODE_EDGE,
+)
 
 ARROW_WIDTH = 10
 ARROW_LENGTH = 20
@@ -89,9 +92,9 @@ class Edge:
             pos = (self.from_node.pos + self.to_node.pos) / 2
 
         pos = window.to_draw_pos(pos)
-        TextElement(window.screen, size=22, color="black", background="white").write(
-            self.label, pos
-        )
+        TextElement(
+            window.screen, size=22, color="black", background="white"
+        ).write(self.label, pos)
 
     def draw_arrow(self, window: window.Window, selected: bool):
         if self.from_node == self.to_node:
@@ -137,4 +140,6 @@ class Edge:
         ]
 
         pygame.draw.polygon(window.screen, color, points)
-        pygame.draw.polygon(window.screen, pygame.Color(0, 0, 0), points, width=1)
+        pygame.draw.polygon(
+            window.screen, pygame.Color(0, 0, 0), points, width=1
+        )

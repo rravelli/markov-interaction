@@ -106,6 +106,8 @@ def open_window(
         # blanken screen
         window.screen.fill("white")
         # draw everything to the screen
+        window.node_history = markov.node_history
+        window.action_history = markov.action_history
         window.draw()
         # update the screen
         pygame.display.flip()

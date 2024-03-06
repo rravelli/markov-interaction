@@ -5,12 +5,12 @@ from markov_listener import MarkovListener
 from plotting import markov_to_graph
 import networkx as nx
 from game import open_window
-from pygame import Color
-from graphics.colors import *
+from graphics.colors import ACTION_NODE_EDGE, DEFAULT_NODE_EDGE
+from sys import argv
 
 
 def main():
-    lexer = gramLexer(FileStream("examples/ex.mdp"))
+    lexer = gramLexer(FileStream(argv[1]))
     stream = CommonTokenStream(lexer)
     parser = gramParser(stream)
     tree = parser.program()
@@ -31,7 +31,9 @@ def main():
         (u, v): DEFAULT_NODE_EDGE if d.get("weight") else ACTION_NODE_EDGE
         for u, v, d in g.edges(data=True)
     }
-    node_size = {name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)}
+    node_size = {
+        name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)
+    }
 
     open_window(
         pos,
@@ -64,8 +66,12 @@ def simulate_markov(markov: MarkovListener):
                 elif choice == ".":
                     return
         else:
-            available = [str(trans) for trans in markov.graph[markov.current_state]]
-            print(f"Following transitions are possible : {', '.join(available)}")
+            available = [
+                str(trans) for trans in markov.graph[markov.current_state]
+            ]
+            print(
+                f"Following transitions are possible : {', '.join(available)}"
+            )
             choice = input("Press enter to continue \n")
             if choice == ".":
                 return
