@@ -18,6 +18,7 @@ def main():
     markov_listener = MarkovListener()
     walker = ParseTreeWalker()
     walker.walk(markov_listener, tree)
+    markov_listener.markov.check_node_without_transition()
     markov = markov_listener.markov
 
     if "-t" in argv or "--terminal" in argv:
@@ -38,9 +39,7 @@ def main_gi(markov: Markov):
         (u, v): DEFAULT_NODE_EDGE if d.get("weight") else ACTION_NODE_EDGE
         for u, v, d in g.edges(data=True)
     }
-    node_size = {
-        name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)
-    }
+    node_size = {name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)}
     open_window(
         pos,
         edges=g.edges(data=True),
@@ -72,12 +71,8 @@ def main_console(markov: Markov):
                 elif choice == ".":
                     return
         else:
-            available = [
-                str(trans) for trans in markov.graph[markov.current_state]
-            ]
-            print(
-                f"Following transitions are possible : {', '.join(available)}"
-            )
+            available = [str(trans) for trans in markov.graph[markov.current_state]]
+            print(f"Following transitions are possible : {', '.join(available)}")
             choice = input("Press enter to continue \n")
             if choice == ".":
                 return

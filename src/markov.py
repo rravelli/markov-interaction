@@ -54,9 +54,7 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Action
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -81,9 +79,7 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Transition
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -92,6 +88,11 @@ class Markov:
             raise TypeError(f"Action '{action.name}' has been defined twice")
 
         self.graph[from_node].append(action)
+
+    def check_node_without_transition(self):
+        for node, trans in self.graph.items():
+            if len(trans) == 0:
+                print(f"[WARNING] State {node} has no transition or action.")
 
     def go_to_next_state(self, action_choice: str = None) -> Transition:
 
@@ -103,9 +104,7 @@ class Markov:
             actions = self.graph.get(self.current_state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(
-                    f"Action {action_choice} is not an available action"
-                )
+                raise ValueError(f"Action {action_choice} is not an available action")
             self.action_history.append(chosen_action[0].name)
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
@@ -128,9 +127,7 @@ class Markov:
         )
 
     @classmethod
-    def _choose_transitions(
-        cls, transitions: list[Transition]
-    ) -> Transition | None:
+    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
         if len(transitions) == 0:
             return None
 
