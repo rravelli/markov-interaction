@@ -25,7 +25,12 @@ class MarkovListener(gramListener):
         transitions = []
         for i in range(len(to_states)):
             new_transition = Transition(weights[i], to_states[i])
+            if any(trans.to == new_transition.to for trans in transitions):
+                raise Warning(
+                    f"Transition to {new_transition.to} has been defined twice in {from_state}[{action_name}]."
+                )
             transitions.append(new_transition)
+
         new_action = Action(action_name, transitions)
         self.markov.add_action(from_state, new_action)
 

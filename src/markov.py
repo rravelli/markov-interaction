@@ -79,14 +79,14 @@ class Markov:
         state_transitions = self.graph.get(from_node)
 
         if action.name not in self.actions:
-            raise KeyError(f"Actions {action.name} was not defined")
+            raise Warning(f"Actions {action.name} was not defined")
 
         if state_transitions is None:
-            raise KeyError(f"State {from_node} was not defined")
+            raise Warning(f"State {from_node} was not defined")
 
         for transition in action.transitions:
             if self.graph.get(transition.to) is None:
-                raise KeyError(f"State {transition.to} was not defined")
+                raise Warning(f"State {transition.to} was not defined")
 
         if len(state_transitions) > 0 and isinstance(
             state_transitions[-1], Transition
@@ -103,7 +103,7 @@ class Markov:
     def check_node_without_transition(self):
         for node, trans in self.graph.items():
             if len(trans) == 0:
-                print(f"[WARNING] State {node} has no transition or action.")
+                raise Warning(f"State {node} has no transition or action.")
 
     def go_to_next_state(self, action_choice: str = None) -> Transition:
 
