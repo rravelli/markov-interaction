@@ -23,12 +23,14 @@ class Node:
         color: Color = Color(255, 255, 255),
         radius: int = 20,
         label: str | float = "",
+        reward: str | float = "",
     ) -> None:
         self.color = color
         self.pos = np.array(pos)
         self.label = str(label) if label else None
         self.radius = radius
         self._r = radius
+        self.reward = str(reward) if reward else None
 
     def draw(
         self,
@@ -47,6 +49,7 @@ class Node:
         self._r += (self.radius * ratio - self._r) / 10
 
         draw_pos = window.to_draw_pos(self.pos)
+        reward_pos = window.to_draw_pos(self.pos + self._r * 1.5 * np.array([0, -1]))
         radius = window.to_draw_scale(self._r)
 
         draw_circle(
@@ -62,6 +65,12 @@ class Node:
                 size=int(window.to_draw_scale(22)),
                 color="black",
             ).write(self.label, draw_pos)
+        if self.reward:
+            TextElement(
+                window.screen,
+                size=int(window.to_draw_scale(17)),
+                color="black",
+            ).write(self.reward, reward_pos)
 
     def inside(self, pos: tuple[float, float], window: window.Window):
         x, y = window.to_draw_pos(self.pos)

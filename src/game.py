@@ -25,6 +25,7 @@ def open_window(
             color=node_color.get(key),
             label=key,
             radius=node_size.get(key),
+            reward=markov.reward.get(key),
         )
         for key in layout
     }
