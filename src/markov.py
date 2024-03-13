@@ -42,7 +42,9 @@ class Markov:
             self.current_state = names[0]
 
         if len(names) > len(reward) > 0:
-            raise KeyError("You must either define rewards for all states or none.")
+            raise KeyError(
+                "You must either define rewards for all states or none."
+            )
 
         for i in range(len(names)):
             self.graph[names[i]] = []
@@ -105,7 +107,23 @@ class Markov:
             if len(trans) == 0:
                 raise Warning(f"State {node} has no transition or action.")
 
-    def go_to_next_state(self, action_choice: str = None) -> Transition:
+    def go_to_next_state(
+        self, action_choice: str = None, state: str = None
+    ) -> Transition:
+        trans = self.simulate_next_state(
+            action_choice=action_choice, state=state
+        )
+
+        if self.is_action_state():
+            self.action_history.append(action_choice)
+
+        return trans
+
+    def simulate_next_state(
+        self, action_choice: str = None, state: str = None
+    ) -> Transition:
+        if state is None:
+            state = self.current_state
 
         if self.is_action_state():
             if action_choice is None:
@@ -118,12 +136,12 @@ class Markov:
                 raise ValueError(
                     f"Action {action_choice} is not an available action"
                 )
-            self.action_history.append(chosen_action[0].name)
+
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
             transitions = self.graph.get(self.current_state)
             trans = Markov._choose_transitions(transitions)
-        self.node_history.append(self.current_state)
+
         if trans is not None:
             self.current_state = trans.to
         return trans
@@ -165,6 +183,14 @@ class Markov:
         actions = self.graph.get(state)
         return actions
 
+    def choose_random_action(self, state=None):
+        if state is None:
+            state = self.current_state
+
+        actions = [x.name for x in self.available_actions()]
+        r = randint(0, len(actions) - 1)
+        return actions[r]
+
     def monte_carlo(
         self,
         states: list[str],
@@ -178,10 +204,36 @@ class Markov:
         for _ in range(n):
             action = None
             if self.is_action_state():
-                actions = [x.name for x in self.available_actions()]
-                r = randint(0, len(actions) - 1)
-                action = actions[r]
+                action = self.choose_random_action()
             self.go_to_next_state(action_choice=action)
             _sum += self.current_state in states
 
         return _sum / n
+
+    def q_learning(self, Ttot: int, gamma: float = 0.1):
+        states = list(self.graph)
+        q: dict[str, float] = {}
+        for t in range(Ttot):
+            # choose state
+            st = states[randint(0, len(states))]
+            # choose action
+            at = None
+            if self.is_action_state(st):
+                at = self.choose_random_action()
+
+            # simulate and get next state
+            next_state = self.simulate_next_state(
+                action_choice=at, state=st
+            ).to
+
+            delta_t = (
+                self.reward[st]
+                + gamma
+                * max(
+                    [
+                        q[f"{next_state};{actions.name}"]
+                        for actions in self.graph[next_state]
+                    ]
+                )
+                - q[f"{st};{at}"]
+            )
