@@ -36,15 +36,14 @@ class Markov:
         self.action_history: list[str] = []
         self.node_history: list[str] = []
         self.reward: dict[str, list[int]] = {}
+        self.q: dict[str, float] = {}
 
     def define_states(self, names: list[str], reward: list[int]):
         if self.current_state is None:
             self.current_state = names[0]
 
         if len(names) > len(reward) > 0:
-            raise KeyError(
-                "You must either define rewards for all states or none."
-            )
+            raise KeyError("You must either define rewards for all states or none.")
 
         for i in range(len(names)):
             self.graph[names[i]] = []
@@ -63,9 +62,7 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Action
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -90,9 +87,7 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise Warning(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Transition
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -110,9 +105,7 @@ class Markov:
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
     ) -> Transition:
-        trans = self.simulate_next_state(
-            action_choice=action_choice, state=state
-        )
+        trans = self.simulate_next_state(action_choice=action_choice, state=state)
 
         if self.is_action_state():
             self.action_history.append(action_choice)
@@ -133,9 +126,7 @@ class Markov:
             actions = self.graph.get(self.current_state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(
-                    f"Action {action_choice} is not an available action"
-                )
+                raise ValueError(f"Action {action_choice} is not an available action")
 
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
@@ -159,9 +150,7 @@ class Markov:
         )
 
     @classmethod
-    def _choose_transitions(
-        cls, transitions: list[Transition]
-    ) -> Transition | None:
+    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
         if len(transitions) == 0:
             return None
 
@@ -212,7 +201,6 @@ class Markov:
 
     def q_learning(self, Ttot: int, gamma: float = 0.1):
         states = list(self.graph)
-        q: dict[str, float] = {}
         for t in range(Ttot):
             # choose state
             st = states[randint(0, len(states))]
@@ -222,18 +210,20 @@ class Markov:
                 at = self.choose_random_action()
 
             # simulate and get next state
-            next_state = self.simulate_next_state(
-                action_choice=at, state=st
-            ).to
+            next_state = self.simulate_next_state(action_choice=at, state=st).to
 
+            # update de la fonction Q
             delta_t = (
                 self.reward[st]
                 + gamma
                 * max(
                     [
-                        q[f"{next_state};{actions.name}"]
+                        self.q[f"{next_state};{actions.name}"]
                         for actions in self.graph[next_state]
                     ]
                 )
-                - q[f"{st};{at}"]
+                - self.q[f"{st};{at}"]
             )
+            self.q[f"{st};{at}"] += 1 / (t + 1) * delta_t
+
+        return self.q
