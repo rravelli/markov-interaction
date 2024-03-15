@@ -254,6 +254,8 @@ class Markov:
         if n is None:
             n = int((log(2) - log(delta)) / (2 * epsilon) ** 2) + 1
         _sum = 0
+
+        print(f"SMC with Monte Carlo with N={n} iterations")
         for _ in range(n):
             start_state = list(self.graph.keys())[0]
             final_state = self.simulate(
@@ -302,7 +304,7 @@ class Markov:
         alpha: float = 0.01,
         beta: float = 0.01,
         epsilon: float = 0.01,
-        max_iter=100,
+        max_iter=10000,
     ):
         if not self.is_markov_chain():
             raise TypeError("Can't apply this algorithm with MDP")
@@ -317,7 +319,10 @@ class Markov:
         Rm = 1
 
         while not done:
-            val = self.simulate(max_iter=max_iter, final_states=final_states)
+            start_state = list(self.graph.keys())[0]
+            val = self.simulate(
+                start_state=start_state, max_iter=max_iter, final_states=final_states
+            )
             m += 1
             if val in final_states:
                 Rm *= gamma1 / gamma0
@@ -325,11 +330,11 @@ class Markov:
                 Rm *= (1 - gamma1) / (1 - gamma0)
             if Rm >= A:
                 print(f"gamma<{gamma1}")
-                print(m)
+                print(f"Number of iterations : {m}")
                 return gamma1
             if Rm <= B:
                 print(f"gamma>={gamma0}")
-                print(m)
+                print(f"Number of iterations : {m}")
                 return gamma0
 
     def _get_normalized_trans(self, state: str):
