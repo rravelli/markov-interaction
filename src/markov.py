@@ -117,7 +117,9 @@ class Markov:
                 ):
                     missing = False
             if missing:
-                raise Warning(f"Action {action_name} was defined but not used.")
+                raise Warning(
+                    f"Action {action_name} was defined but not used."
+                )
 
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
@@ -261,3 +263,61 @@ class Markov:
             self.q[f"{st};{at}"] += 1 / (t + 1) * delta_t
 
         return self.q
+
+    def simulate(
+        self,
+        final_states: list[str],
+        start_state: str = None,
+        max_iter: int = 10000,
+    ):
+        if start_state is None:
+            start_state = self.current_state
+        state = start_state
+        k = 0
+        while k < max_iter:
+            if state in final_states:
+                return state
+            action_choice = None
+
+            if self.is_action_state(state):
+                action_choice = self.choose_random_action(state)
+
+            state = self.go_to_next_state(action_choice, state).to
+            k += 1
+
+    def sprt(
+        self,
+        final_states: list[str],
+        theta: float,
+        alpha: float = 0.01,
+        beta: float = 0.01,
+        epsilon: float = 0.01,
+        max_iter=100,
+    ):
+        if not self.is_markov_chain():
+            raise TypeError("Can't apply this algorithm with MDP")
+
+        gamma1 = theta - epsilon
+        gamma0 = theta + epsilon
+        A = (1 - beta) / alpha
+        B = beta / (1 - alpha)
+
+        done = False
+        m = 0
+        Rm = 1
+
+        while not done:
+            val = self.simulate(max_iter=max_iter, final_states=final_states)
+            m += 1
+            if val in final_states:
+                Rm *= gamma1 / gamma0
+            else:
+                Rm *= (1 - gamma1) / (1 - gamma0)
+            if Rm >= A:
+                print(f"gamma<{gamma1}")
+                print(m)
+                return gamma1
+            if Rm <= B:
+                print(f"gamma>={gamma0}")
+                print(m)
+                return gamma0

@@ -103,8 +103,5 @@ def sprt(
             return gamma0
 
 
-def q_learning(): ...
-
-
 sprt(theta=0.1)
 print(monte_carlo(0.05, 0.01, 2), 1 / 6)
