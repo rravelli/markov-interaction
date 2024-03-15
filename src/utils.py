@@ -12,5 +12,5 @@ def markov_from_file(path: str):
     listener = MarkovListener()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
-    listener.markov.check_node_without_transition()
+    listener.markov.check_definitions_not_used()
     return listener.markov

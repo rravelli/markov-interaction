@@ -102,10 +102,22 @@ class Markov:
 
         self.graph[from_node].append(action)
 
-    def check_node_without_transition(self):
+    def check_definitions_not_used(self):
         for node, trans in self.graph.items():
             if len(trans) == 0:
                 raise Warning(f"State {node} has no transition or action.")
+
+        for action_name in self.actions:
+            missing = True
+            for node in self.graph.keys():
+                if any(
+                    action_name == action.name
+                    for action in self.graph[node]
+                    if isinstance(action, Action)
+                ):
+                    missing = False
+            if missing:
+                raise Warning(f"Action {action_name} was defined but not used.")
 
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
@@ -160,6 +172,12 @@ class Markov:
             and len(state_transitions)
             and isinstance(state_transitions[-1], Action)
         )
+
+    def is_markov_chain(self):
+        if len(self.actions) == 0:
+            return True
+        else:
+            return False
 
     @classmethod
     def _choose_transitions(
