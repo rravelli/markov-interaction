@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, choices
 from math import log
 
 
@@ -42,9 +42,7 @@ class Markov:
             self.current_state = names[0]
 
         if len(names) > len(reward) > 0:
-            raise KeyError(
-                "You must either define rewards for all states or none."
-            )
+            raise KeyError("You must either define rewards for all states or none.")
 
         for i in range(len(names)):
             self.graph[names[i]] = []
@@ -63,9 +61,7 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Action
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -90,9 +86,7 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise Warning(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Transition
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -117,16 +111,12 @@ class Markov:
                 ):
                     missing = False
             if missing:
-                raise Warning(
-                    f"Action {action_name} was defined but not used."
-                )
+                raise Warning(f"Action {action_name} was defined but not used.")
 
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
     ) -> Transition:
-        trans = self.simulate_next_state(
-            action_choice=action_choice, state=state
-        )
+        trans = self.simulate_next_state(action_choice=action_choice, state=state)
 
         if self.is_action_state():
             self.history.append(action_choice)
@@ -144,24 +134,51 @@ class Markov:
         if state is None:
             state = self.current_state
 
-        if self.is_action_state():
+        if self.is_action_state(state):
             if action_choice is None:
                 raise ValueError(
-                    f"Current state {self.current_state} is an action-state. You must choose an action"
+                    f"Current state {state} is an action-state. You must choose an action"
                 )
-            actions = self.graph.get(self.current_state)
+            actions = self.graph.get(state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(
-                    f"Action {action_choice} is not an available action"
-                )
+                raise ValueError(f"Action {action_choice} is not an available action")
 
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
-            transitions = self.graph.get(self.current_state)
+            transitions = self.graph.get(state)
             trans = Markov._choose_transitions(transitions)
 
         return trans
+
+    def simulate(
+        self,
+        final_states: list[str],
+        start_state: str = None,
+        max_iter: int = 10000,
+    ):
+        if start_state is None:
+            start_state = self.current_state
+
+        current_state = start_state
+        k = 0
+        while k < max_iter:
+            if current_state in final_states:
+                return current_state
+
+            if (
+                len(self.graph[current_state]) == 1
+                and self.graph[current_state][0].to == current_state
+            ):
+                return None
+
+            action_choice = None
+
+            if self.is_action_state(current_state):
+                action_choice = self.choose_random_action(current_state)
+
+            current_state = self.simulate_next_state(action_choice, current_state).to
+            k += 1
 
     def is_action_state(self, state=None) -> bool:
         if state is None:
@@ -182,20 +199,13 @@ class Markov:
             return False
 
     @classmethod
-    def _choose_transitions(
-        cls, transitions: list[Transition]
-    ) -> Transition | None:
+    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
         if len(transitions) == 0:
             return None
+        weights = [trans.weight for trans in transitions]
+        choice = choices(transitions, weights, k=1)
 
-        sum_ = sum([t.weight for t in transitions])
-        val = randint(0, sum_)
-        acc = 0
-        for t in transitions:
-            acc += t.weight
-            if val < acc:
-                return t
-        return transitions[-1]
+        return choice[0]
 
     def available_actions(self, state: str = None):
         if state is None:
@@ -221,15 +231,19 @@ class Markov:
         delta: float = None,
         n: int = None,
     ):
+        if not self.is_markov_chain():
+            return TypeError("SMC in only possible on Markov Chains")
+
         if n is None:
             n = int((log(2) - log(delta)) / (2 * epsilon) ** 2) + 1
         _sum = 0
         for _ in range(n):
-            action = None
-            if self.is_action_state():
-                action = self.choose_random_action()
-            self.go_to_next_state(action_choice=action)
-            _sum += self.current_state in states
+            start_state = list(self.graph.keys())[0]
+            final_state = self.simulate(
+                final_states=states,
+                start_state=start_state,
+            )
+            _sum += final_state in states
 
         return _sum / n
 
@@ -244,9 +258,7 @@ class Markov:
                 at = self.choose_random_action()
 
             # simulate and get next state
-            next_state = self.simulate_next_state(
-                action_choice=at, state=st
-            ).to
+            next_state = self.simulate_next_state(action_choice=at, state=st).to
 
             # update de la fonction Q
             delta_t = (
@@ -263,27 +275,6 @@ class Markov:
             self.q[f"{st};{at}"] += 1 / (t + 1) * delta_t
 
         return self.q
-
-    def simulate(
-        self,
-        final_states: list[str],
-        start_state: str = None,
-        max_iter: int = 10000,
-    ):
-        if start_state is None:
-            start_state = self.current_state
-        state = start_state
-        k = 0
-        while k < max_iter:
-            if state in final_states:
-                return state
-            action_choice = None
-
-            if self.is_action_state(state):
-                action_choice = self.choose_random_action(state)
-
-            state = self.go_to_next_state(action_choice, state).to
-            k += 1
 
     def sprt(
         self,

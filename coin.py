@@ -104,4 +104,4 @@ def sprt(
 
 
 sprt(theta=0.1)
-print(monte_carlo(0.05, 0.01, 2), 1 / 6)
+print(monte_carlo(0.05, 0.01, 1), 1 / 6)
