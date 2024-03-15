@@ -1,5 +1,6 @@
 from random import randint, choices
 from math import log
+import numpy as np
 
 
 class Transition:
@@ -42,7 +43,9 @@ class Markov:
             self.current_state = names[0]
 
         if len(names) > len(reward) > 0:
-            raise KeyError("You must either define rewards for all states or none.")
+            raise KeyError(
+                "You must either define rewards for all states or none."
+            )
 
         for i in range(len(names)):
             self.graph[names[i]] = []
@@ -61,7 +64,9 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
+        if len(state_transitions) > 0 and isinstance(
+            state_transitions[-1], Action
+        ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -86,7 +91,9 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise Warning(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
+        if len(state_transitions) > 0 and isinstance(
+            state_transitions[-1], Transition
+        ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -111,12 +118,16 @@ class Markov:
                 ):
                     missing = False
             if missing:
-                raise Warning(f"Action {action_name} was defined but not used.")
+                raise Warning(
+                    f"Action {action_name} was defined but not used."
+                )
 
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
     ) -> Transition:
-        trans = self.simulate_next_state(action_choice=action_choice, state=state)
+        trans = self.simulate_next_state(
+            action_choice=action_choice, state=state
+        )
 
         if self.is_action_state():
             self.history.append(action_choice)
@@ -142,7 +153,9 @@ class Markov:
             actions = self.graph.get(state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(f"Action {action_choice} is not an available action")
+                raise ValueError(
+                    f"Action {action_choice} is not an available action"
+                )
 
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
@@ -177,7 +190,9 @@ class Markov:
             if self.is_action_state(current_state):
                 action_choice = self.choose_random_action(current_state)
 
-            current_state = self.simulate_next_state(action_choice, current_state).to
+            current_state = self.simulate_next_state(
+                action_choice, current_state
+            ).to
             k += 1
 
     def is_action_state(self, state=None) -> bool:
@@ -199,7 +214,9 @@ class Markov:
             return False
 
     @classmethod
-    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
+    def _choose_transitions(
+        cls, transitions: list[Transition]
+    ) -> Transition | None:
         if len(transitions) == 0:
             return None
         weights = [trans.weight for trans in transitions]
@@ -258,7 +275,9 @@ class Markov:
                 at = self.choose_random_action()
 
             # simulate and get next state
-            next_state = self.simulate_next_state(action_choice=at, state=st).to
+            next_state = self.simulate_next_state(
+                action_choice=at, state=st
+            ).to
 
             # update de la fonction Q
             delta_t = (
@@ -312,3 +331,78 @@ class Markov:
                 print(f"gamma>={gamma0}")
                 print(m)
                 return gamma0
+
+    def _get_normalized_trans(self, state: str):
+        transitions = self.graph[state]
+        _sum = sum([trans.weight for trans in transitions])
+        return [
+            Transition(weight=trans.weight / _sum, to=trans.to)
+            for trans in transitions
+        ]
+
+    def until_pctl(self, final_state: str, n: int = None):
+        """Calculate P(<> final_state) or P(<> < n final_state) if n is provided
+
+        Returns:
+            S: list[str] the list of state calculated
+            y: np.NDarray the probabilities
+        """
+        if not self.is_markov_chain():
+            raise TypeError("Can't apply this algorithm with MDP")
+
+        S: list[str] = []
+        S0 = []
+        S1 = []
+        for state in self.graph:
+            transitions = self.graph[state]
+            filtered_transtions = [
+                trans for trans in transitions if trans.weight > 0
+            ]
+            # remove trivial states
+            if len(filtered_transtions) == 0:
+                S0.append(state)
+                continue
+
+            if len(filtered_transtions) == 1:
+                trans = filtered_transtions[0]
+                if trans.to == final_state:
+                    S1.append(state)
+                    continue
+                if trans.to == state:
+                    S0.append(state)
+                    continue
+                if trans.to in S0:
+                    S0.append(state)
+
+            S.append(state)
+
+        b = np.zeros(len(S))
+        # update b
+        for index, state in enumerate(S):
+            transitions = self._get_normalized_trans(state)
+            for trans in transitions:
+                if trans.to in S1 or trans.to == final_state:
+                    b[index] = trans.weight
+                    break
+
+        A = np.zeros((len(S), len(S)))
+        for x, state_from in enumerate(S):
+            for y, state_to in enumerate(S):
+                transitions = self._get_normalized_trans(state_from)
+
+                for trans in transitions:
+                    if trans.to == state_to:
+                        A[x][y] = trans.weight
+                        break
+
+        M = np.eye(A.shape[0]) - A
+
+        if n is None:
+            # Solve Ax = b
+            y = np.linalg.solve(M, b)
+        else:
+            y = np.zeros(len(S))
+            for _ in range(n):
+                y = np.dot(A, y) + b
+
+        return S, y
