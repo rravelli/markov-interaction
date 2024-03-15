@@ -14,7 +14,7 @@ class Window:
         selected_node_label: str = None,
     ) -> None:
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 700), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((800, 800), pygame.RESIZABLE)
         # set the pygame window name
         pygame.display.set_caption("Markov")
         # pygame.display.set_icon()
@@ -22,8 +22,7 @@ class Window:
         self.nodes = nodes
         self.edges = edges
         self.selected_node = selected_node_label
-        self.node_history = []
-        self.action_history = []
+        self.history = []
 
     def _rescale(self, coordinates: list[tuple[float, float]]):
         self.min_x = float("inf")
@@ -41,6 +40,7 @@ class Window:
             if y > self.max_y:
                 self.max_y = y
         margin = 100
+
         self.min_x -= margin
         self.max_x += margin
         self.min_y -= margin
@@ -108,7 +108,7 @@ class Window:
         # print history
         my_font = pygame.font.SysFont("arial", 15)
         text = my_font.render(
-            "Node history: " + ",".join(self.node_history[-20:]),
+            "History: " + ",".join(self.history[-20:]),
             True,
             "black",
         )
@@ -116,15 +116,7 @@ class Window:
         text_rect.centerx = self.screen.get_width() / 2
         text_rect.centery = 50
         self.screen.blit(text, text_rect)
-        text = my_font.render(
-            "Action history: " + ",".join(self.action_history[-20:]),
-            True,
-            "black",
-        )
-        text_rect = text.get_rect()
-        text_rect.centerx = self.screen.get_width() / 2
-        text_rect.centery = 30
-        self.screen.blit(text, text_rect)
+
         if yellow:
             my_font = pygame.font.SysFont("arial", 30)
             text = my_font.render(

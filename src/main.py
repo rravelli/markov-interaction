@@ -1,25 +1,14 @@
-from antlr4 import CommonTokenStream, ParseTreeWalker, FileStream
-from gramLexer import gramLexer
-from gramParser import gramParser
-from markov_listener import MarkovListener
 from plotting import markov_to_graph
 import networkx as nx
 from game import open_window
 from graphics.colors import ACTION_NODE_EDGE, DEFAULT_NODE_EDGE
 from sys import argv
 from markov import Markov
+from utils import markov_from_file
 
 
 def main():
-    lexer = gramLexer(FileStream(argv[-1]))
-    stream = CommonTokenStream(lexer)
-    parser = gramParser(stream)
-    tree = parser.program()
-    markov_listener = MarkovListener()
-    walker = ParseTreeWalker()
-    walker.walk(markov_listener, tree)
-    markov_listener.markov.check_node_without_transition()
-    markov = markov_listener.markov
+    markov = markov_from_file(argv[-1])
 
     if "-t" in argv or "--terminal" in argv:
         main_console(markov)
@@ -39,7 +28,9 @@ def main_gi(markov: Markov):
         (u, v): DEFAULT_NODE_EDGE if d.get("weight") else ACTION_NODE_EDGE
         for u, v, d in g.edges(data=True)
     }
-    node_size = {name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)}
+    node_size = {
+        name: 12 if d["action"] else 20 for name, d in g.nodes(data=True)
+    }
     open_window(
         pos,
         edges=g.edges(data=True),
@@ -71,8 +62,12 @@ def main_console(markov: Markov):
                 elif choice == ".":
                     return
         else:
-            available = [str(trans) for trans in markov.graph[markov.current_state]]
-            print(f"Following transitions are possible : {', '.join(available)}")
+            available = [
+                str(trans) for trans in markov.graph[markov.current_state]
+            ]
+            print(
+                f"Following transitions are possible : {', '.join(available)}"
+            )
             choice = input("Press enter to continue \n")
             if choice == ".":
                 return

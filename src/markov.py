@@ -33,8 +33,7 @@ class Markov:
         self.graph: dict[str, list[Action] | list[Transition]] = {}
         self.actions: list[str] = []
         self.current_state = None
-        self.action_history: list[str] = []
-        self.node_history: list[str] = []
+        self.history: list[str] = []
         self.reward: dict[str, list[int]] = {}
         self.q: dict[str, float] = {}
 
@@ -43,7 +42,9 @@ class Markov:
             self.current_state = names[0]
 
         if len(names) > len(reward) > 0:
-            raise KeyError("You must either define rewards for all states or none.")
+            raise KeyError(
+                "You must either define rewards for all states or none."
+            )
 
         for i in range(len(names)):
             self.graph[names[i]] = []
@@ -62,7 +63,9 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
+        if len(state_transitions) > 0 and isinstance(
+            state_transitions[-1], Action
+        ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -87,7 +90,9 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise Warning(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
+        if len(state_transitions) > 0 and isinstance(
+            state_transitions[-1], Transition
+        ):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -105,10 +110,17 @@ class Markov:
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
     ) -> Transition:
-        trans = self.simulate_next_state(action_choice=action_choice, state=state)
+        trans = self.simulate_next_state(
+            action_choice=action_choice, state=state
+        )
 
         if self.is_action_state():
-            self.action_history.append(action_choice)
+            self.history.append(action_choice)
+
+        self.history.append(trans.to)
+
+        if trans is not None:
+            self.current_state = trans.to
 
         return trans
 
@@ -126,15 +138,15 @@ class Markov:
             actions = self.graph.get(self.current_state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(f"Action {action_choice} is not an available action")
+                raise ValueError(
+                    f"Action {action_choice} is not an available action"
+                )
 
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
             transitions = self.graph.get(self.current_state)
             trans = Markov._choose_transitions(transitions)
 
-        if trans is not None:
-            self.current_state = trans.to
         return trans
 
     def is_action_state(self, state=None) -> bool:
@@ -150,7 +162,9 @@ class Markov:
         )
 
     @classmethod
-    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
+    def _choose_transitions(
+        cls, transitions: list[Transition]
+    ) -> Transition | None:
         if len(transitions) == 0:
             return None
 
@@ -210,7 +224,9 @@ class Markov:
                 at = self.choose_random_action()
 
             # simulate and get next state
-            next_state = self.simulate_next_state(action_choice=at, state=st).to
+            next_state = self.simulate_next_state(
+                action_choice=at, state=st
+            ).to
 
             # update de la fonction Q
             delta_t = (

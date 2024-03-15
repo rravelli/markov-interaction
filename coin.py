@@ -69,7 +69,12 @@ def monte_carlo(delta: float, epsilon: float, val=1):
     return sum / N, N
 
 
-def sprt(theta: float, alpha: float = 0.01, beta: float = 0.01, epsilon: float = 0.01):
+def sprt(
+    theta: float,
+    alpha: float = 0.01,
+    beta: float = 0.01,
+    epsilon: float = 0.01,
+):
     i = 1
     k = 5
     gamma1 = theta - epsilon
@@ -96,6 +101,9 @@ def sprt(theta: float, alpha: float = 0.01, beta: float = 0.01, epsilon: float =
             print(f"gamma>={gamma0}")
             print(m)
             return gamma0
+
+
+def q_learning(): ...
 
 
 sprt(theta=0.1)
