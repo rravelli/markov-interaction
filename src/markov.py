@@ -36,16 +36,13 @@ class Markov:
         self.current_state = None
         self.history: list[str] = []
         self.reward: dict[str, list[int]] = {}
-        self.q: dict[str, float] = {}
 
     def define_states(self, names: list[str], reward: list[int]):
         if self.current_state is None:
             self.current_state = names[0]
 
         if len(names) > len(reward) > 0:
-            raise KeyError(
-                "You must either define rewards for all states or none."
-            )
+            raise KeyError("You must either define rewards for all states or none.")
 
         for i in range(len(names)):
             self.graph[names[i]] = []
@@ -64,9 +61,7 @@ class Markov:
         if self.graph.get(transition.to) is None:
             raise KeyError(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Action
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Action):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -91,9 +86,7 @@ class Markov:
             if self.graph.get(transition.to) is None:
                 raise Warning(f"State {transition.to} was not defined")
 
-        if len(state_transitions) > 0 and isinstance(
-            state_transitions[-1], Transition
-        ):
+        if len(state_transitions) > 0 and isinstance(state_transitions[-1], Transition):
             raise TypeError(
                 "Can't mix transitions with and without actions on the same node"
             )
@@ -118,16 +111,12 @@ class Markov:
                 ):
                     missing = False
             if missing:
-                raise Warning(
-                    f"Action {action_name} was defined but not used."
-                )
+                raise Warning(f"Action {action_name} was defined but not used.")
 
     def go_to_next_state(
         self, action_choice: str = None, state: str = None
     ) -> Transition:
-        trans = self.simulate_next_state(
-            action_choice=action_choice, state=state
-        )
+        trans = self.simulate_next_state(action_choice=action_choice, state=state)
 
         if self.is_action_state():
             self.history.append(action_choice)
@@ -153,9 +142,7 @@ class Markov:
             actions = self.graph.get(state)
             chosen_action = [x for x in actions if x.name == action_choice]
             if len(chosen_action) <= 0:
-                raise ValueError(
-                    f"Action {action_choice} is not an available action"
-                )
+                raise ValueError(f"Action {action_choice} is not an available action")
 
             trans = Markov._choose_transitions(chosen_action[0].transitions)
         else:
@@ -190,9 +177,7 @@ class Markov:
             if self.is_action_state(current_state):
                 action_choice = self.choose_random_action(current_state)
 
-            current_state = self.simulate_next_state(
-                action_choice, current_state
-            ).to
+            current_state = self.simulate_next_state(action_choice, current_state).to
             k += 1
 
     def is_action_state(self, state=None) -> bool:
@@ -214,9 +199,7 @@ class Markov:
             return False
 
     @classmethod
-    def _choose_transitions(
-        cls, transitions: list[Transition]
-    ) -> Transition | None:
+    def _choose_transitions(cls, transitions: list[Transition]) -> Transition | None:
         if len(transitions) == 0:
             return None
         weights = [trans.weight for trans in transitions]
@@ -267,19 +250,27 @@ class Markov:
         return _sum / n
 
     def q_learning(self, Ttot: int, gamma: float = 0.1):
+        if self.is_markov_chain():
+            raise Warning("Using a learning algorithm on a markov chain is pointless.")
+        q = {}
+        for state in self.graph.keys():
+            for action in self.graph[state]:
+                if isinstance(action, Action):
+                    q[f"{state};{action.name}"] = 0
+                else:
+                    q[f"{state};{None}"] = 0
+
         states = list(self.graph)
         for t in range(Ttot):
             # choose state
-            st = states[randint(0, len(states))]
+            st = states[randint(0, len(states) - 1)]
             # choose action
             at = None
             if self.is_action_state(st):
                 at = self.choose_random_action()
 
             # simulate and get next state
-            next_state = self.simulate_next_state(
-                action_choice=at, state=st
-            ).to
+            next_state = self.simulate_next_state(action_choice=at, state=st).to
 
             # update de la fonction Q
             delta_t = (
@@ -287,15 +278,17 @@ class Markov:
                 + gamma
                 * max(
                     [
-                        self.q[f"{next_state};{actions.name}"]
+                        q[
+                            f"{next_state};{actions.name if isinstance(actions, Action) else None}"
+                        ]
                         for actions in self.graph[next_state]
                     ]
                 )
-                - self.q[f"{st};{at}"]
+                - q[f"{st};{at}"]
             )
-            self.q[f"{st};{at}"] += 1 / (t + 1) * delta_t
+            q[f"{st};{at}"] += 1 / (t + 1) * delta_t
 
-        return self.q
+        return q
 
     def sprt(
         self,
@@ -341,8 +334,7 @@ class Markov:
         transitions = self.graph[state]
         _sum = sum([trans.weight for trans in transitions])
         return [
-            Transition(weight=trans.weight / _sum, to=trans.to)
-            for trans in transitions
+            Transition(weight=trans.weight / _sum, to=trans.to) for trans in transitions
         ]
 
     def until_pctl(self, final_state: str, n: int = None):
@@ -360,9 +352,7 @@ class Markov:
         S1 = []
         for state in self.graph:
             transitions = self.graph[state]
-            filtered_transtions = [
-                trans for trans in transitions if trans.weight > 0
-            ]
+            filtered_transtions = [trans for trans in transitions if trans.weight > 0]
             # remove trivial states
             if len(filtered_transtions) == 0:
                 S0.append(state)
