@@ -399,6 +399,19 @@ class Markov:
             )
             q[f"{st};{at}"] += 1 / (t + 1) * delta_t
 
-            st = next_state
+            reset = True
+            if self.is_action_state(next_state):
+                for action in self.graph[next_state]:
+                    if any(trans != next_state for trans in action.transitions):
+                        reset = False
+                        break
+            else:
+                if any(trans != next_state for trans in self.graph[next_state]):
+                    reset = False
+
+            if reset:  # reached final state
+                st = states[0]
+            else:
+                st = next_state
 
         return q
