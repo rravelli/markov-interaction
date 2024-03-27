@@ -35,7 +35,7 @@ class Markov:
         self.actions: list[str] = []
         self.current_state = None
         self.history: list[str] = []
-        self.reward: dict[str, list[int]] = {}
+        self.reward: dict[str, int] = {}
 
     def define_states(self, names: list[str], reward: list[int]):
         if self.current_state is None:
@@ -230,6 +230,7 @@ class Markov:
         epsilon: float = None,
         delta: float = None,
         n: int = None,
+        max_iter: int = 10000,
     ):
         if not self.is_markov_chain():
             return TypeError("SMC in only possible on Markov Chains")
@@ -242,53 +243,11 @@ class Markov:
         for _ in range(n):
             start_state = list(self.graph.keys())[0]
             final_state = self.simulate(
-                final_states=states,
-                start_state=start_state,
+                final_states=states, start_state=start_state, max_iter=max_iter
             )
             _sum += final_state in states
 
         return _sum / n
-
-    def q_learning(self, Ttot: int, gamma: float = 0.1):
-        if self.is_markov_chain():
-            raise Warning("Using a learning algorithm on a markov chain is pointless.")
-        q = {}
-        for state in self.graph.keys():
-            for action in self.graph[state]:
-                if isinstance(action, Action):
-                    q[f"{state};{action.name}"] = 0
-                else:
-                    q[f"{state};{None}"] = 0
-
-        states = list(self.graph)
-        for t in range(Ttot):
-            # choose state
-            st = states[randint(0, len(states) - 1)]
-            # choose action
-            at = None
-            if self.is_action_state(st):
-                at = self.choose_random_action()
-
-            # simulate and get next state
-            next_state = self.simulate_next_state(action_choice=at, state=st).to
-
-            # update de la fonction Q
-            delta_t = (
-                self.reward[st]
-                + gamma
-                * max(
-                    [
-                        q[
-                            f"{next_state};{actions.name if isinstance(actions, Action) else None}"
-                        ]
-                        for actions in self.graph[next_state]
-                    ]
-                )
-                - q[f"{st};{at}"]
-            )
-            q[f"{st};{at}"] += 1 / (t + 1) * delta_t
-
-        return q
 
     def sprt(
         self,
@@ -401,3 +360,45 @@ class Markov:
                 y = np.dot(A, y) + b
 
         return S, y
+
+    def q_learning(self, Ttot: int, gamma: float = 0.1):
+        if self.is_markov_chain():
+            raise Warning("Using a learning algorithm on a markov chain is pointless.")
+        q = {}
+        for state in self.graph.keys():
+            for action in self.graph[state]:
+                if isinstance(action, Action):
+                    q[f"{state};{action.name}"] = 0
+                else:
+                    q[f"{state};{None}"] = 0
+
+        states = list(self.graph)
+        st = states[0]
+        for t in range(Ttot):
+            # choose action
+            at = None
+            if self.is_action_state(st):
+                at = self.choose_random_action()
+
+            # simulate and get next state
+            next_state = self.simulate_next_state(action_choice=at, state=st).to
+
+            # update de la fonction Q
+            delta_t = (
+                self.reward[st]
+                + gamma
+                * max(
+                    [
+                        q[
+                            f"{next_state};{actions.name if isinstance(actions, Action) else None}"
+                        ]
+                        for actions in self.graph[next_state]
+                    ]
+                )
+                - q[f"{st};{at}"]
+            )
+            q[f"{st};{at}"] += 1 / (t + 1) * delta_t
+
+            st = next_state
+
+        return q
